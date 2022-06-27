@@ -28,6 +28,8 @@ right=[pygame.image.load(os.path.join("Hero","R1.png")),
        pygame.image.load(os.path.join("Hero","R9.png"))]
 unscaled_background=pygame.image.load("desert_BG.png")
 background=pygame.transform.scale(unscaled_background,(win_width,win_height))
+unscaled_bullet=pygame.image.load("bullet.png")
+bullet_img=pygame.transform.scale(unscaled_bullet,(10,10))
 class Hero():
     def __init__(self,x,y):
         self.x=x
@@ -38,6 +40,7 @@ class Hero():
         self.faceLeft=False
         self.jump=False
         self.stepIndex=0
+        self.bullets=[]
         
     def move_hero(self,userInput):
         if userInput[pygame.K_RIGHT] and self.x<=660:
@@ -71,10 +74,45 @@ class Hero():
             win.blit(left[self.stepIndex],(self.x,self.y))
             self.stepIndex+=1
 
+    def direction(self):
+        if self.faceRight:
+            return 1
+        if self.faceLeft:
+            return -1
+
+    def shoot(self):
+        if userInput[pygame.K_f]:
+            bullet=Bullet(self.x,self.y,self.direction())
+            self.bullets.append(bullet)
+        for bullet in self.bullets:
+            bullet.move()
+            if bullet.off_screen():
+                self.bullets.remove(bullet)
+
+class Bullet():
+    def __init__(self,x,y,direction):
+        self.x=x
+        self.y=y
+        self.direction=direction
+
+    def draw_bullet(self):
+        win.blit(bullet_img,(self.x,self.y))
+
+    def move(self):
+        if self.direction==1:
+            self.x+=15
+        if self.direction==-1:
+            self.x-=15
+
+    def off_screen(self):
+        return not(self.x>=0 and self.x<=win_width)
+
 def draw_game():
     win.fill((0,0,0))
     win.blit(background,(0,0))
     player.draw(win)
+    for bullet in player.bullets:
+        bullet.draw_bullet()
     pygame.time.delay(50)
     pygame.display.update()
 
@@ -88,4 +126,5 @@ while run:
     userInput=pygame.key.get_pressed()
     player.move_hero(userInput)
     player.jump_motion(userInput)
+    player.shoot()
     draw_game()
